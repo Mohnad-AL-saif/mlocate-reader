@@ -1,0 +1,21 @@
+# عرض كل الملفات
+python mlocate_reader.py mlocate.db
+
+# بحث مثل grep
+python mlocate_reader.py mlocate.db -s "home"
+python mlocate_reader.py mlocate.db -s "home" -i
+
+# بحث بـ glob
+python mlocate_reader.py mlocate.db -s "*.txt" -g
+
+# بحث بـ regex
+python mlocate_reader.py mlocate.db -s "creds.*\.txt" -r
+
+# عدد النتائج بس
+python mlocate_reader.py mlocate.db -s "home" -c
+
+# حفظ النتائج في ملف
+python mlocate_reader.py mlocate.db -s "home" -o results.txt
+
+# إحصائيات
+python mlocate_reader.py mlocate.db --stats
