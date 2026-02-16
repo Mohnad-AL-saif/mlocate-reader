@@ -1,0 +1,256 @@
+# 📋 mlocate Cheat Sheet
+
+## ⚙️ Installation
+
+```bash
+# Debian / Ubuntu
+sudo apt update && sudo apt install mlocate
+
+# CentOS / RHEL / Fedora
+sudo dnf install mlocate          # CentOS 7+ / Fedora
+sudo yum install mlocate          # CentOS 6
+
+# Arch Linux
+sudo pacman -S mlocate
+
+# openSUSE
+sudo zypper install mlocate
+```
+
+---
+
+## 🔄 Update Database (updatedb)
+
+```bash
+# Standard update
+sudo updatedb
+
+# Quiet update (no progress)
+sudo updatedb -q
+
+# Custom database output
+sudo updatedb -o /tmp/my.db
+
+# Exclude specific paths
+sudo updatedb --prunepaths="/tmp /var/tmp /media"
+
+# Exclude specific filesystems
+sudo updatedb --prunefs="NFS nfs"
+
+# View updatedb configuration
+cat /etc/updatedb.conf
+
+# Version info
+updatedb --version
+```
+
+---
+
+## 🔍 Basic Search (locate)
+
+```bash
+# Simple search
+locate filename
+
+# Search by full path
+locate /etc/nginx
+
+# Search by extension
+locate "*.conf"
+locate "*.log"
+locate "*.php"
+```
+
+---
+
+## 🎯 Advanced Search Options
+
+```bash
+# Case-insensitive
+locate -i README
+
+# Basename only (filename without path)
+locate -b "nginx.conf"
+
+# Limit results
+locate -l 10 "*.py"
+
+# Count matches only
+locate -c "*.txt"
+
+# Regex search
+locate -r "\.conf$"
+locate -r "/home/.*\.ssh"
+locate -r "^/etc/.*\.d$"
+
+# Exact match
+locate -b "\passwd"
+
+# Use custom database
+locate -d /path/to/mlocate.db "pattern"
+
+# List all files from custom database
+locate -d mlocate.db .
+
+# Only show existing files
+locate -e "*.conf"
+```
+
+---
+
+## 🔗 Combining locate with Other Commands
+
+```bash
+# locate + grep
+locate ".conf" | grep nginx
+locate -i "home" | grep -i "password\|cred\|key"
+
+# locate + wc (count results)
+locate "*.py" | wc -l
+
+# locate + xargs
+locate "*.log" | xargs ls -la
+locate "*.tmp" | xargs rm -f
+
+# locate + head/tail
+locate "*.conf" | head -20
+locate "*.conf" | tail -10
+
+# locate + sort
+locate "*.sh" | sort
+
+# locate + awk (extract directories only)
+locate "*.conf" | awk -F'/' '{NF--; print}' OFS='/' | sort -u
+
+# Save results to file
+locate "*.conf" > /tmp/all_configs.txt
+```
+
+---
+
+## 🛡️ Security & Pentesting Usage
+
+```bash
+# Search for sensitive files
+locate -i "password"
+locate -i "credential"
+locate -i "secret"
+locate -i ".key"
+locate -i "id_rsa"
+locate -i "shadow"
+locate -i ".env"
+locate -i "wp-config"
+locate -i "config.php"
+
+# Search for backup files
+locate "*.bak"
+locate "*.backup"
+locate "*.old"
+locate "*.sql"
+locate "*.dump"
+
+# Enumerate users and home directories
+locate -d mlocate.db . | grep "^/home"
+locate -d mlocate.db . | grep "^/home" | cut -d'/' -f3 | sort -u
+
+# Find web applications
+locate -d mlocate.db . | grep -i "www\|html\|public"
+
+# Find installed packages and software
+locate -d mlocate.db . | grep "^/opt\|^/usr/local"
+
+# Copy mlocate.db from remote server
+scp user@target:/var/lib/mlocate/mlocate.db .
+
+# Copy locally if you have read access
+cp /var/lib/mlocate/mlocate.db /tmp/
+
+# Check file permissions
+find / -group mlocate 2>/dev/null
+ls -la /var/lib/mlocate/mlocate.db
+ls -la /usr/bin/mlocate
+```
+
+---
+
+## 📂 Important Files
+
+| Path | Description |
+|------|-------------|
+| `/var/lib/mlocate/mlocate.db` | Main database file |
+| `/etc/updatedb.conf` | updatedb configuration |
+| `/usr/bin/mlocate` | Binary (SGID mlocate) |
+| `/etc/cron.daily/mlocate` | Daily cron job for auto-update |
+
+---
+
+## ⚙️ updatedb.conf Reference
+
+```bash
+# View current config
+cat /etc/updatedb.conf
+
+# Default settings:
+PRUNE_BIND_MOUNTS="yes"                    # Skip bind mounts
+PRUNEFS="NFS nfs nfs4 rpc_pipefs afs ..."  # Filesystems to skip
+PRUNENAMES=".git .bzr .hg .svn"            # Directory names to skip
+PRUNEPATHS="/tmp /var/spool /media /mnt"   # Paths to skip
+```
+
+---
+
+## 🐍 Python Toolkit Commands
+
+```bash
+# ── mylocate.py — Build custom database ──
+
+python3 mylocate.py updatedb                    # Index / (Linux)
+python3 mylocate.py updatedb --root C:\         # Index C: (Windows)
+python3 mylocate.py updatedb --root /home       # Index specific dir
+python3 mylocate.py search "config"             # Text search
+python3 mylocate.py search "*.py" -i            # Case-insensitive
+python3 mylocate.py search "^/etc" -r           # Regex search
+python3 mylocate.py search "main.py" -b         # Basename search
+python3 mylocate.py search "log" -l 50          # Limit to 50 results
+python3 mylocate.py stats                       # Show statistics
+
+# ── mlocate_reader.py — Read original mlocate.db ──
+
+python3 mlocate_reader.py mlocate.db            # List all paths
+python3 mlocate_reader.py mlocate.db -s "home"  # Text search
+python3 mlocate_reader.py mlocate.db -s "*.txt" -g    # Glob search
+python3 mlocate_reader.py mlocate.db -s "ssh" -r      # Regex search
+python3 mlocate_reader.py mlocate.db -s "key" -i      # Case-insensitive
+python3 mlocate_reader.py mlocate.db -s "conf" -l 30  # Limit results
+python3 mlocate_reader.py mlocate.db -s "home" -c     # Count only
+python3 mlocate_reader.py mlocate.db -s "etc" -o out.txt  # Save to file
+python3 mlocate_reader.py mlocate.db --stats           # Statistics
+```
+
+---
+
+## ⚡ Quick Tips
+
+| Tip | Details |
+|-----|---------|
+| `updatedb` requires `sudo` | It indexes all files system-wide |
+| Database auto-updates daily | Via cron job in `/etc/cron.daily/` |
+| `locate -e` checks existence | Only shows files that actually exist |
+| `-b` for basename search | Ignores directory path |
+| `-c` for count only | Faster than `locate \| wc -l` |
+| `mlocate.db` stores names only | Does not contain file contents |
+| Binary is SGID mlocate | Allows users to search with permission checks |
+
+---
+
+## 🔄 mlocate vs plocate vs find
+
+| Feature | mlocate | plocate | find |
+|---------|---------|---------|------|
+| Speed | Very fast | Fastest | Slow |
+| Requires database | ✅ | ✅ | ❌ |
+| Real-time results | ❌ | ❌ | ✅ |
+| Content search | ❌ | ❌ | ❌ |
+| Permission search | ❌ | ❌ | ✅ |
+| Size search | ❌ | ❌ | ✅ |
+| Date search | ❌ | ❌ | ✅ |
